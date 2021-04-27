@@ -22,7 +22,7 @@ const start = () => {
             message: 'What would you like to do?',
             choices: [
                 'Add a department',
-                'Add a role',
+                'Add a position',
                 'Add an employee',
                 'Update employee positions',
                 'View departments',
@@ -43,13 +43,13 @@ const start = () => {
                 case 'Add an employee':
                     addEmployee();
                     break;
-                case 'Update employee roles':
+                case 'Update employee positions':
                     updateEmployeePositions();
                     break;
                 case 'View departments':
                     viewDepartments();
                     break;
-                case 'View roles':
+                case 'View positions':
                     viewPositions();
                     break;
                 case 'View Employees':
@@ -71,7 +71,7 @@ const addDepartment = () => {
             message: "What department would you like to add?"
         }
     ]).then(function (res) {
-        connection.query('INSERT INTO departments VALUES (?)', [res.addedDepartment], function (err, data) {
+        connection.query('INSERT INTO departments (department) VALUES (?)', [res.addedDepartment], function (err, data) {
             if (err) throw err;
             console.table("Successful insertion");
             start();
@@ -79,6 +79,33 @@ const addDepartment = () => {
     }
     )
 };
+
+const addPosition = () => {
+    inquirer.prompt([
+        {
+            type: "input",
+            name: "position",
+            message: "Enter role:"
+        },
+        {
+            type: "number",
+            name: "salary",
+            message: "Enter salary:"
+        },
+        {
+            type: "number",
+            name: "departmentId",
+            message: "Enter department ID number:"
+        }
+    ]).then(function (res){
+        connection.query('INSERT INTO positions (position, salary, departmentId) values (?, ?, ?)', 
+        [res.position, res.salary, res.departmentId], function(err, data){
+            if (err) throw err;
+            console.table(data);
+        })
+        start();
+    })
+}
 // connect to the mysql server and sql database
 connection.connect((err) => {
     if (err) throw err;
