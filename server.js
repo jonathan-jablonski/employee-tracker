@@ -32,7 +32,7 @@ const start = () => {
             ],
         })
         .then(function ({ init }) {
-            // based on their answer, switch statement to display certain 
+            // based on their answer, calling certain functions to run
             switch (init) {
                 case 'Add a department':
                     addDepartment();
@@ -62,6 +62,7 @@ const start = () => {
         });
 };
 
+// function to add a department to seed.sql
 const addDepartment = () => {
     inquirer.prompt([
         {
