@@ -13,8 +13,8 @@ const connection = mysql.createConnection({
 
 // function which prompts the user for what action they should take
 const start = () => {
-    console.log('Welcome to the employee tracker application! Select an option below to get started.')
-    console.log('============================================\n')
+    console.log('\nWelcome to the employee tracker application! Select an option below to get started.')
+    console.log('============================================')
     inquirer
         .prompt({
             name: 'init',
