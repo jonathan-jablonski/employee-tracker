@@ -98,14 +98,100 @@ const addPosition = () => {
             message: "Enter department ID number:"
         }
     ]).then(function (res){
-        connection.query('INSERT INTO positions (position, salary, departmentId) values (?, ?, ?)', 
+        connection.query('INSERT INTO positions (position, salary, department_id) values (?, ?, ?)', 
         [res.position, res.salary, res.departmentId], function(err, data){
             if (err) throw err;
             console.table(data);
+            start();
         })
-        start();
+        
+    })
+};
+
+const addEmployee = () => {
+    inquirer.prompt([
+        {
+            type: "input",
+            name: "firstName",
+            message: "What is the employee's first name?"
+        },
+        {
+            type: "input",
+            name: "lastName",
+            message: "What is the employee's last name?"
+        }
+    ]).then (function (res){
+        connection.query('INSERT INTO employees (first_name, last_name) values (?, ?)', 
+        [res.firstName, res.lastName], function(err, data) {
+            if (err) throw err;
+            console.table(data);
+            start();
+        })
     })
 }
+
+// function updateEmployeePositions() {
+//     connection.query("SELECT * FROM positions", function(err, res) {
+//         const positions = res.map((row) => ({
+//             id: row.id,
+//             title: row.title,
+//             salary: row.salary,
+//             department_id: row.department_id
+//         }));
+//         inquirer.prompt([
+//             {
+//                 type: "choices",
+//                 name: "positionToUpdate",
+//                 message: "What position would you like to change?",
+//                 choices: positions,
+//             },
+//             {
+//                 type: "choices",
+//                 name: "changeChoice",
+//                 message: "What would you like to change?",
+//                 choices: ['Position', 'Salary', 'Department'],
+//             },
+//             {
+//                 when: (answers) => answers.changeChoice === 'Position',
+//                 type: "input",
+//                 name: "position",
+//                 message: "What is their new position?"
+//             },
+//         ]).then(function (res){
+//             connection.query('SELECT *', 
+//             [res.firstName, res.lastName], function(err, data) {
+//                 if (err) throw err;
+//                 console.table(data);
+//                 start();
+//         })
+//     })
+//     })
+// }
+// Return a list of stored departments
+const viewDepartments = () => {
+    connection.query("SELECT * FROM departments", function (err, data) {
+        if (err) throw err;
+        console.table(data);
+        start();
+    });
+};
+// Return a list of positions
+const viewPositions = () => {
+    connection.query("SELECT * FROM positions", function (err, data) {
+        if (err) throw err;
+        console.table(data);
+        start();
+    });
+};
+
+// Return a list of employees
+const viewEmployees = () => {
+    connection.query("SELECT * FROM employees", function (err, data) {
+        if (err) throw err;
+        console.table(data);
+        start();
+    });
+};
 // connect to the mysql server and sql database
 connection.connect((err) => {
     if (err) throw err;
