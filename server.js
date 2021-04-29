@@ -10,11 +10,16 @@ const connection = mysql.createConnection({
     password: 'password',
     database: 'companyDB',
 });
-
+// connect to the mysql server and sql database
+connection.connect((err) => {
+    if (err) throw err;
+    // run the start function after the connection is made to prompt the user
+    start();
+});
 // function which prompts the user for what action they should take
 const start = () => {
-    console.log('\nWelcome to the employee tracker application! Select an option below to get started.')
-    console.log('============================================')
+    console.log('Employee Tracker\n \nMain Menu');
+    console.log('=============================================');
     inquirer
         .prompt({
             name: 'init',
@@ -135,7 +140,7 @@ async function updateEmployeePositions() {
         "SELECT * FROM POSITIONS",
         function (err, data) {
             data.forEach((position) => {
-                console.log(`${position.id} ${position.title} ${position.salary} ${position.department_id}`);
+                console.table(data);
             })
         }
     );
@@ -162,17 +167,17 @@ async function updateEmployeePositions() {
                 when: (answers) => answers.changeChoice === "Salary",
                 type: "input",
                 name: "salary",
-                message: "What is their new position?",
+                message: "What is their new salary?",
             },
             {
                 when: (answers) => answers.changeChoice === "Department",
                 type: "input",
                 name: "department",
-                message: "What is their new position?",
+                message: "What is their new department?",
             },
         ])
         .then(function (res) {
-            console.log(res)
+            console.table(res)
             let queryString = ``;
             let queryValues = [];
             if (res.changeChoice === 'Position') {
@@ -200,7 +205,9 @@ async function updateEmployeePositions() {
 const viewDepartments = () => {
     connection.query("SELECT * FROM departments", function (err, data) {
         if (err) throw err;
+        console.log('\n Departments \n');
         console.table(data);
+        console.log('\n =============================================\n')
         start();
     });
 };
@@ -208,8 +215,10 @@ const viewDepartments = () => {
 const viewPositions = () => {
     connection.query("SELECT * FROM positions", function (err, data) {
         if (err) throw err;
+        console.log('\n Positions \n');
         console.table(data);
-        start();
+        console.log('\n =============================================\n')
+        start();;
     });
 };
 
@@ -217,13 +226,9 @@ const viewPositions = () => {
 const viewEmployees = () => {
     connection.query("SELECT * FROM employees", function (err, data) {
         if (err) throw err;
+        console.log('\n Employees \n');
         console.table(data);
+        console.log('\n =============================================\n')
         start();
     });
 };
-// connect to the mysql server and sql database
-connection.connect((err) => {
-    if (err) throw err;
-    // run the start function after the connection is made to prompt the user
-    start();
-});
