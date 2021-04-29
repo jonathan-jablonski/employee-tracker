@@ -131,37 +131,71 @@ const addEmployee = () => {
 }
 
 async function updateEmployeePositions() {
-    const positions = await  connection.query("SELECT * FROM positions", function (err, res) {
-        return res.map((row) => {return row.title});
-    })
-    inquirer.prompt([
-      {
-          type: "choices",
-          name: "positionToUpdate",
-          message: "What position would you like to change?",
-          choices: positions,
-      },
-      {
-          type: "choices",
-          name: "changeChoice",
-          message: "What would you like to change?",
-          choices: ['Position', 'Salary', 'Department'],
-      },
-      {
-          when: (answers) => answers.changeChoice === 'Position',
-          type: "input",
-          name: "position",
-          message: "What is their new position?"
-      },
-  ]).then(function (res) { console.log(res.positions)
-        connection.query('UPDATE positions SET first_name=?, last_name=? WHERE id=?',
-          [res.firstName, res.lastName], function (err, data) {
-              if (err) throw err;
-              console.table(data);
-              start();
-          })
-  })
-  };
+    await connection.query(
+        "SELECT * FROM POSITIONS",
+        function (err, data) {
+            data.forEach((position) => {
+                console.log(`${position.id} ${position.title} ${position.salary} ${position.department_id}`);
+            })
+        }
+    );
+    inquirer
+        .prompt([
+            {
+                type: "input",
+                name: "positionToUpdate",
+                message: "What position would you like to change? (Enter an ID)"
+            },
+            {
+                type: "list",
+                name: "changeChoice",
+                message: "What would you like to change?",
+                choices: ["Position", "Salary", "Department"],
+            },
+            {
+                when: (answers) => answers.changeChoice === "Position",
+                type: "input",
+                name: "position",
+                message: "What is their new position?",
+            },
+            {
+                when: (answers) => answers.changeChoice === "Salary",
+                type: "input",
+                name: "salary",
+                message: "What is their new position?",
+            },
+            {
+                when: (answers) => answers.changeChoice === "Department",
+                type: "input",
+                name: "department",
+                message: "What is their new position?",
+            },
+        ])
+        .then(function (res) {
+            console.log(res)
+            let queryString = ``;
+            let queryValues = [];
+            if (res.changeChoice === 'Position') {
+                queryString = `UPDATE positions SET position=? WHERE id = ?`;
+                queryValues = [res.position, res.positionToUpdate]
+            } else if (res.changeChoice === 'Salary') {
+                queryString = `UPDATE positions SET salary=? WHERE id = ?`;
+                queryValues = [res.salary, res.positionToUpdate]
+            } else if (res.changeChoice === 'Department') {
+                queryString = `UPDATE positions SET deparment_id=? WHERE id = ?`;
+                queryValues = [res.department_id, res.positionToUpdate]
+            }
+            connection.query(
+                queryString,
+                queryValues,
+                function (err, data) {
+                    if (err) throw err;
+                    console.table(data);
+                    start();
+                }
+            );
+        });
+}
 // Return a list of stored departments
 const viewDepartments = () => {
     connection.query("SELECT * FROM departments", function (err, data) {
