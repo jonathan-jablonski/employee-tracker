@@ -26,3 +26,9 @@ CREATE TABLE employees (
   manager_id INT NULL,
   PRIMARY KEY (id)
 );
+
+CREATE TABLE managers (
+  id INT NOT NULL AUTO_INCREMENT,
+  manager_title VARCHAR(50) NOT NULL,
+  primary key (id)
+);

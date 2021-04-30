@@ -29,7 +29,9 @@ const start = () => {
                 'Add a department',
                 'Add a position',
                 'Add an employee',
+                'Add a manager',
                 'Update employee positions',
+                'Update employee managers',
                 'View departments',
                 'View positions',
                 'View employees',
@@ -49,8 +51,14 @@ const start = () => {
                 case 'Add an employee':
                     addEmployee();
                     break;
+                case 'Add a manager':
+                    addManager();
+                    break;
                 case 'Update employee positions':
                     updateEmployeePositions();
+                    break;
+                case 'Update employee managers':
+                    updateEmployeeManagers();
                     break;
                 case 'View departments':
                     viewDepartments();
@@ -128,14 +136,20 @@ const addEmployee = () => {
             type: "input",
             name: "lastName",
             message: "What is the employee's last name?"
+        },
+        {
+            type: "confirm",
+            name: "managerStatus",
+            message: "Is this employee a manager?"
         }
     ]).then(function (res) {
-        connection.query('INSERT INTO employees (first_name, last_name) values (?, ?)',
-            [res.firstName, res.lastName], function (err, data) {
+        connection.query('INSERT INTO employees (first_name, last_name, position_id, manager_id) values (?, ?, ?, ?)',
+            [res.firstName, res.lastName, 2, res.managerStatus], function (err, data) {
                 if (err) throw err;
-                console.table(data);
-                start();
-            })
+                console.table(data)});
+        if (res.managerStatus === true) {
+            addManager();
+        }
     })
 }
 
@@ -228,22 +242,22 @@ const viewPositions = () => {
 
 // Return a list of employees
 const viewEmployees = () => {
-    connection.query("SELECT employees.first_name, employees.last_name, departments.department, positions.position, positions.salary FROM employees INNER JOIN departments ON employees.role_id = departments.id INNER JOIN positions ON employees.role_id = positions.id;", 
- /*
-SELECT employees.first_name, employees.last_name, departments.department, positions.position, positions.salary 
-FROM employees 
-INNER JOIN departments 
-ON employees.role_id = departments.id 
-INNER JOIN positions 
-ON employees.role_id = positions.id;
-*/
-    function (err, data) {
-        if (err) throw err;
-        console.log('\n Employees \n');
-        console.table(data);
-        console.log('\n =============================================\n')
-        start();
-    });
+    connection.query("SELECT employees.first_name, employees.last_name, departments.department, positions.position, positions.salary FROM employees INNER JOIN departments ON employees.position_id = departments.id INNER JOIN positions ON employees.position_id = positions.id;",
+        /*
+       SELECT employees.first_name, employees.last_name, departments.department, positions.position, positions.salary 
+       FROM employees 
+       INNER JOIN departments 
+       ON employees.role_id = departments.id 
+       INNER JOIN positions 
+       ON employees.role_id = positions.id;
+       */
+        function (err, data) {
+            if (err) throw err;
+            console.log('\n Employees \n');
+            console.table(data);
+            console.log('\n =============================================\n')
+            start();
+        });
 };
 // Return a sum of all salaries
 const viewBudget = () => {
@@ -255,3 +269,82 @@ const viewBudget = () => {
         start();
     });
 };
+
+const addManager = () => {
+    inquirer.prompt([
+        {
+            type: "input",
+            name: "managerTitle",
+            message: "What is this manager's title?"
+        },
+    ]).then(function (res) {
+        connection.query('INSERT INTO managers (manager_title) values (?)',
+            [res.managerTitle], function (err, data) {
+                if (err) throw err;
+                console.table(data);
+                start();
+            })
+    })
+};
+
+function updateEmployeeManagers() {
+    connection.query(
+        "SELECT * FROM managers",
+        function (err, data) {
+            data.forEach((position) => {
+                console.table(data);
+            })
+        }
+    );
+    inquirer
+        .prompt([
+            {
+                type: "input",
+                name: "managerToUpdate",
+                message: "Which manager would you like to change? (Enter an ID)"
+            },
+            {
+                type: "input",
+                name: "updatedManagerTitle",
+                message: "What would you like to change their title to?",
+            },
+            {
+                type: "confirm",
+                name: "updateManagerStatus",
+                message: "Would you like to change the status of this manager?"
+            },
+            {
+                when: (answers) => answers.updateManagerStatus === true,
+                type: "input",
+                name: "managerStatus",
+                message: "What department is this manager in?",
+            },
+            {
+                type: "confirm",
+                name: "addAnotherManager",
+                message: "Would you like to add another manager?"
+            }
+        ])
+        .then(function (res) {
+            console.table(res)
+            let queryString = ``;
+            let queryValues = [];
+            if (res.managerStatus === true) {
+                queryString = `UPDATE managers SET =? WHERE id = ?`;
+                queryValues = [res.updatedManagerTitle, res.managerToUpdate]
+            } else if (res.updateManagerStatus === false) {
+                start();
+            } else if (res.addAnotherManager === true) {
+                addManager();
+            }
+            connection.query(
+                queryString,
+                queryValues,
+                function (err, data) {
+                    if (err) throw err;
+                    console.table(data);
+                    start();
+                }
+            );
+        });
+    };
