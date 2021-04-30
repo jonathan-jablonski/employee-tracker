@@ -7,7 +7,7 @@ const connection = mysql.createConnection({
     host: 'localhost',
     port: 3306,
     user: 'root',
-    password: 'root',
+    password: 'password',
     database: 'companyDB',
 });
 // connect to the mysql server and sql database
@@ -58,10 +58,10 @@ const start = () => {
                 case 'View positions':
                     viewPositions();
                     break;
-                case 'View Employees':
+                case 'View employees':
                     viewEmployees();
                     break;
-                case 'View Budget':
+                case 'View budget':
                     viewBudget();
                     break;
                 case 'Exit':
@@ -228,7 +228,15 @@ const viewPositions = () => {
 
 // Return a list of employees
 const viewEmployees = () => {
-    connection.query("SELECT employees.first_name, employees.last_name, departments.department, positions.position, positions.salary FROM employees INNER JOIN departments ON employees.position_id = departments.id INNER JOIN positions ON employees.position_id = positions.position;", 
+    connection.query("SELECT employees.first_name, employees.last_name, departments.department, positions.position, positions.salary FROM employees INNER JOIN departments ON employees.role_id = departments.id INNER JOIN positions ON employees.role_id = positions.id;", 
+ /*
+SELECT employees.first_name, employees.last_name, departments.department, positions.position, positions.salary 
+FROM employees 
+INNER JOIN departments 
+ON employees.role_id = departments.id 
+INNER JOIN positions 
+ON employees.role_id = positions.id;
+*/
     function (err, data) {
         if (err) throw err;
         console.log('\n Employees \n');
@@ -241,7 +249,7 @@ const viewEmployees = () => {
 const viewBudget = () => {
     connection.query("SELECT SUM(salary) FROM positions;", function (err, data) {
         if (err) throw err;
-        console.log('\n Current sum of all salaries: \n');
+        console.log('\n Current sum of all salaries in USD: \n');
         console.table(data);
         console.log('\n =============================================\n')
         start();
