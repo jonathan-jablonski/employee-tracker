@@ -7,7 +7,7 @@ const connection = mysql.createConnection({
     host: 'localhost',
     port: 3306,
     user: 'root',
-    password: 'password',
+    password: 'root',
     database: 'companyDB',
 });
 // connect to the mysql server and sql database
@@ -33,6 +33,7 @@ const start = () => {
                 'View departments',
                 'View positions',
                 'View employees',
+                'View budget',
                 'Exit'
             ],
         })
@@ -59,6 +60,9 @@ const start = () => {
                     break;
                 case 'View Employees':
                     viewEmployees();
+                    break;
+                case 'View Budget':
+                    viewBudget();
                     break;
                 case 'Exit':
                     connection.end();
@@ -224,9 +228,20 @@ const viewPositions = () => {
 
 // Return a list of employees
 const viewEmployees = () => {
-    connection.query("SELECT * FROM employees", function (err, data) {
+    connection.query("SELECT employees.first_name, employees.last_name, departments.department, positions.position, positions.salary FROM employees INNER JOIN departments ON employees.position_id = departments.id INNER JOIN positions ON employees.position_id = positions.position;", 
+    function (err, data) {
         if (err) throw err;
         console.log('\n Employees \n');
+        console.table(data);
+        console.log('\n =============================================\n')
+        start();
+    });
+};
+// Return a sum of all salaries
+const viewBudget = () => {
+    connection.query("SELECT SUM(salary) FROM positions;", function (err, data) {
+        if (err) throw err;
+        console.log('\n Current sum of all salaries: \n');
         console.table(data);
         console.log('\n =============================================\n')
         start();
