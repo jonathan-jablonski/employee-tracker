@@ -23,6 +23,7 @@ CREATE TABLE employees (
   first_name VARCHAR(45) NULL,
   last_name VARCHAR(45) NULL,
   position_id INT NULL,
+  manager_status BOOLEAN, 
   manager_id INT NULL,
   PRIMARY KEY (id)
 );

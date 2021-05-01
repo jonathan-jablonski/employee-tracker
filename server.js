@@ -16,6 +16,8 @@ connection.connect((err) => {
     // run the start function after the connection is made to prompt the user
     start();
 });
+
+const managerChoices = [];
 // function which prompts the user for what action they should take
 const start = () => {
     console.log('Employee Tracker\n \nMain Menu');
@@ -125,7 +127,11 @@ const addPosition = () => {
     })
 };
 
-const addEmployee = () => {
+const addEmployee = async () => {
+    await connection.query('SELECT * FROM managers', function (err, data) {
+        console.table(data);
+        if (err) throw err;
+    });
     inquirer.prompt([
         {
             type: "input",
@@ -141,18 +147,32 @@ const addEmployee = () => {
             type: "confirm",
             name: "managerStatus",
             message: "Is this employee a manager?"
+        },
+        {
+            when: (answers) => answers.managerStatus === true,
+            type: "input",
+            name: "managerId",
+            message: "What is this manager's ID number?",
+        },
+        {
+            when: (answers) => answers.managerStatus === false,
+            type: "list",
+            name: "employeeManagerId",
+            message: "What is this employee's manager ID number?",
+            choices: ["1 - Engineering", "2 - Human Resources", "3 - Sales", "4 - Customer Service"]
         }
     ]).then(function (res) {
-        connection.query('INSERT INTO employees (first_name, last_name, position_id, manager_id) values (?, ?, ?, ?)',
-            [res.firstName, res.lastName, 2, res.managerStatus], function (err, data) {
+        connection.query('INSERT INTO employees (first_name, last_name, position_id, manager_status, manager_id) values (?, ?, ?, ?, ?)',
+            [res.firstName, res.lastName, 2, res.managerStatus, res.employeeManagerId], function (err, data) {
                 if (err) throw err;
-                console.table(data)});
-        if (res.managerStatus === true) {
-            addManager();
-        }
-    })
-}
-
+                console.table(data)
+                if (res.managerStatus === true) {
+                    addManager();
+            };
+        start();
+        });
+    });
+};
 async function updateEmployeePositions() {
     await connection.query(
         "SELECT * FROM POSITIONS",
@@ -329,13 +349,15 @@ async function updateEmployeeManagers() {
             console.table(res)
             let queryString = ``;
             let queryValues = [];
-            if (res.managerStatus === true) {
+            if (res.updateManagerStatus === true) {
                 queryString = `UPDATE managers SET manager_title=? WHERE id = ?`;
-                queryValues = [res.updatedManagerTitle, res.managerToUpdate]
+                queryValues = [res.updatedManagerTitle, res.managerToUpdate];
             } else if (res.updateManagerStatus === false) {
                 start();
+                return updateEmployeeManagers();
             } else if (res.addAnotherManager === true) {
                 addManager();
+                return addManager();
             }
             connection.query(
                 queryString,
@@ -347,4 +369,4 @@ async function updateEmployeeManagers() {
                 }
             );
         });
-    };
+};
