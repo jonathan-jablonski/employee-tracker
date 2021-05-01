@@ -287,6 +287,7 @@ const viewBudget = () => {
     });
 };
 
+// Add a manager
 const addManager = () => {
     inquirer.prompt([
         {
@@ -303,7 +304,7 @@ const addManager = () => {
             })
     })
 };
-
+// Update manager_id in employees table
 async function updateEmployeeManagers() {
     await connection.query(
         "SELECT * FROM employees",
@@ -343,27 +344,27 @@ async function updateEmployeeManagers() {
             }
         ])
         .then(function (res) {
-            console.table(res)
             let queryString = ``;
             let queryValues = [];
             if (res.updateManagerStatus === true) {
                 queryString = `UPDATE employees SET manager_id=? WHERE id = ?`;
                 queryValues = [res.updatedManagerId, res.managerToUpdate];
+                console.log(queryString, queryValues);
+                connection.query(
+                    queryString,
+                    queryValues,
+                    function (err, data) {
+                        if (err) throw err;
+                        console.table(data);
+                        start();
+                    }
+                );
             } else if (res.updateManagerStatus === false) {
-                start();
+                return start();
             } else if (res.addAnotherManager === true) {
                 addManager();
                 return addManager();
             }
-            connection.query(
-                queryString,
-                queryValues,
-                function (err, data) {
-                    if (err) throw err;
-                    console.table(data);
-                    start();
-                }
-            );
         });
 };
 
