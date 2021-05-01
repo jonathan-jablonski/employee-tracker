@@ -31,12 +31,12 @@ const start = () => {
                 'Add a department',
                 'Add a position',
                 'Add an employee',
-                'Add a manager',
                 'Update employee positions',
                 'Update employee managers',
                 'View departments',
                 'View positions',
                 'View employees',
+                'View employees by manager',
                 'View budget',
                 'Exit'
             ],
@@ -53,9 +53,6 @@ const start = () => {
                 case 'Add an employee':
                     addEmployee();
                     break;
-                case 'Add a manager':
-                    addManager();
-                    break;
                 case 'Update employee positions':
                     updateEmployeePositions();
                     break;
@@ -70,6 +67,9 @@ const start = () => {
                     break;
                 case 'View employees':
                     viewEmployees();
+                    break;
+                case 'View employees by manager':
+                    viewEmployeesByManager();
                     break;
                 case 'View budget':
                     viewBudget();
@@ -127,11 +127,7 @@ const addPosition = () => {
     })
 };
 
-const addEmployee = async () => {
-    await connection.query('SELECT * FROM managers', function (err, data) {
-        console.table(data);
-        if (err) throw err;
-    });
+const addEmployee = () => {
     inquirer.prompt([
         {
             type: "input",
@@ -158,19 +154,20 @@ const addEmployee = async () => {
             when: (answers) => answers.managerStatus === false,
             type: "list",
             name: "employeeManagerId",
-            message: "What is this employee's manager ID number?",
-            choices: ["1 - Engineering", "2 - Human Resources", "3 - Sales", "4 - Customer Service"]
+            message: "Who is this employee's manager?",
+            choices: ["1 - Jim", "2 - Dwight", "3 - Michael", "4 - Andy"]
         }
     ]).then(function (res) {
         connection.query('INSERT INTO employees (first_name, last_name, position_id, manager_status, manager_id) values (?, ?, ?, ?, ?)',
-            [res.firstName, res.lastName, 2, res.managerStatus, res.employeeManagerId], function (err, data) {
+            [res.firstName, res.lastName, 2, res.managerStatus, res.employeeManagerId.split('-')[0]], function (err, data) {
                 if (err) throw err;
+                console.log(data);
                 console.table(data)
                 if (res.managerStatus === true) {
                     addManager();
-            };
-        start();
-        });
+                };
+                start();
+            });
     });
 };
 async function updateEmployeePositions() {
@@ -294,12 +291,12 @@ const addManager = () => {
     inquirer.prompt([
         {
             type: "input",
-            name: "managerTitle",
-            message: "What is this manager's title?"
+            name: "managerIdNum",
+            message: "What is this manager's ID?"
         },
     ]).then(function (res) {
-        connection.query('INSERT INTO managers (manager_title) values (?)',
-            [res.managerTitle], function (err, data) {
+        connection.query('INSERT INTO employees (manager_id) values (?)',
+            [res.managerIdNum], function (err, data) {
                 if (err) throw err;
                 console.table(data);
                 start();
@@ -309,7 +306,7 @@ const addManager = () => {
 
 async function updateEmployeeManagers() {
     await connection.query(
-        "SELECT * FROM managers",
+        "SELECT * FROM employees",
         function (err, data) {
             data.forEach((position) => {
                 console.table(data);
@@ -321,12 +318,12 @@ async function updateEmployeeManagers() {
             {
                 type: "input",
                 name: "managerToUpdate",
-                message: "Which manager would you like to change? (Enter an ID)"
+                message: "Which employee's manager would you like to change? (Enter an ID)"
             },
             {
                 type: "input",
-                name: "updatedManagerTitle",
-                message: "What would you like to change their title to?",
+                name: "updatedManagerId",
+                message: "What would you like to change their manager ID to?",
             },
             {
                 type: "confirm",
@@ -350,11 +347,10 @@ async function updateEmployeeManagers() {
             let queryString = ``;
             let queryValues = [];
             if (res.updateManagerStatus === true) {
-                queryString = `UPDATE managers SET manager_title=? WHERE id = ?`;
-                queryValues = [res.updatedManagerTitle, res.managerToUpdate];
+                queryString = `UPDATE employees SET manager_id=? WHERE id = ?`;
+                queryValues = [res.updatedManagerId, res.managerToUpdate];
             } else if (res.updateManagerStatus === false) {
                 start();
-                return updateEmployeeManagers();
             } else if (res.addAnotherManager === true) {
                 addManager();
                 return addManager();
@@ -369,4 +365,22 @@ async function updateEmployeeManagers() {
                 }
             );
         });
+};
+
+const viewEmployeesByManager = () => {
+    inquirer.prompt([
+        {
+            type: "list",
+            name: "managerId",
+            message: "Which manager's employees would you like to view?",
+            choices: ["1 - Jim", "2 - Dwight", "3 - Michael", "4 - Andy"]
+        },
+    ]).then(function (res) {
+        connection.query('SELECT * FROM employees WHERE manager_id=?',
+            [res.managerId], function (err, data) {
+                if (err) throw err;
+                console.table(data);
+                start();
+            })
+    })
 };
