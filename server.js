@@ -287,8 +287,8 @@ const addManager = () => {
     })
 };
 
-function updateEmployeeManagers() {
-    connection.query(
+async function updateEmployeeManagers() {
+    await connection.query(
         "SELECT * FROM managers",
         function (err, data) {
             data.forEach((position) => {
@@ -315,9 +315,9 @@ function updateEmployeeManagers() {
             },
             {
                 when: (answers) => answers.updateManagerStatus === true,
-                type: "input",
+                type: "confirm",
                 name: "managerStatus",
-                message: "What department is this manager in?",
+                message: "Is this person still a manager?",
             },
             {
                 type: "confirm",
@@ -330,7 +330,7 @@ function updateEmployeeManagers() {
             let queryString = ``;
             let queryValues = [];
             if (res.managerStatus === true) {
-                queryString = `UPDATE managers SET =? WHERE id = ?`;
+                queryString = `UPDATE managers SET manager_title=? WHERE id = ?`;
                 queryValues = [res.updatedManagerTitle, res.managerToUpdate]
             } else if (res.updateManagerStatus === false) {
                 start();
