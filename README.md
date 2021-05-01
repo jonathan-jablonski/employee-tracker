@@ -70,6 +70,7 @@ This is an example of how to list things you need to use the software and how to
 Use this project to track the status of employees, your budget, and the teams that your managers oversee.
 
 
+![employee-tracker-demo](https://user-images.githubusercontent.com/74980325/116786671-9c8f7c00-aa65-11eb-8de9-6be03cc09c59.gif)
 
 
 
